@@ -25,6 +25,8 @@ class DAMNIST(MNIST):
             self.source_labels = self.train_labels
             self.target_data = self.source_data.clone()
             random.shuffle(self.target_data)
+            self.target_data_for_adv = self.target_data.clone()
+            random.shuffle(self.target_data_for_adv)
         else:
             self.target_data = self.test_data
             self.target_labels = self.test_labels
@@ -34,17 +36,20 @@ class DAMNIST(MNIST):
             source_img = self.source_data[idx]
             source_label = self.source_labels[idx]
             target_img = self.target_data[idx]
+            target_img_for_adv = self.target_data_for_adv[idx]
 
             source_img = Image.fromarray(source_img.numpy(), mode='L')
             target_img = Image.fromarray(target_img.numpy(), mode='L')
+            target_img_for_adv = Image.fromarray(target_img_for_adv.numpy(), mode='L')
 
             if self.source_transform is not None:
                 source_img = self.source_transform(source_img)
 
             if self.target_transform is not None:
                 target_img = self.target_transform(target_img)
+                target_img_for_adv = self.target_transform(target_img_for_adv)
 
-            return source_img, source_label, target_img
+            return source_img, source_label, target_img, target_img_for_adv
         else:
             target_img = self.target_data[idx]
             target_img = Image.fromarray(target_img.numpy(), mode='L')

@@ -111,13 +111,16 @@ class DomainAdversarialTrainer:
 
     def _train_source(self, source_data, source_labels):
         # init
-        self.classifier_optim.zero_grad()
+        self.classifier_a_optim.zero_grad()
+        self.classifier_b_optim.zero_grad()
         self.source_optim.zero_grad()
 
+        # Step A. Source Classifier
         # forward
         source_features = self.source_encoder(source_data)
-        source_preds = self.classifier(source_features)
-        classifier_loss = self.supervised_criterion(source_preds, source_labels)
+        source_preds_a = self.classifier_a(source_features)
+        source_preds_b = self.classifier_b(source_features)
+        classifier_loss = self.supervised_criterion(torch.cat((source_preds_a, source_preds_b)), torch.cat((source_labels, source_labels)))
 
         # backward
         classifier_loss.backward()
@@ -125,9 +128,39 @@ class DomainAdversarialTrainer:
         self.classifier_optim.step()
         self.source_optim.step()
         source_accuracy = self._calc_accuracy(source_preds, source_labels)
+
+        # Step B. Maximize Discrepancy
+        # init
+
+        self.classifier_a_optim.zero_grad()
+        self.classifier_b_optim.zero_grad()
+        self.source_optim.zero_grad()
+
+        source_features = self.source_encoder(source_data)
+        source_preds_a = self.classifier_a(source_features)
+        source_preds_b = self.classifier_b(source_features)
+        discrepancy = F.mse_loss(source_preds_a, source_preds_b)
+        discrepancy.backward()
+        self.classifier_a.step()
+        self.classifier_b.step()
+
+        # Step C. Minimum Discrepancy
+        # init
+
+        self.classifier_a_optim.zero_grad()
+        self.classifier_b_optim.zero_grad()
+        self.source_optim.zero_grad()
+
+        source_features = self.source_encoder(source_data)
+        source_preds_a = self.classifier_a(source_features)
+        source_preds_b = self.classifier_b(source_features)
+        discrepancy = F.mse_loss(source_preds_a, source_preds_b)
+        discrepancy.backward()
+        self.source_optim.step()
+
         return classifier_loss, source_accuracy
 
-    def _train_source_modeling(self, source_data):
+    def _train_source_modeling(self, source_data, source_labels):
         self.source_optim.zero_grad()
         self.source_domain_generator_optim.zero_grad()
         self.source_domain_discriminator_optim.zero_grad()
@@ -168,7 +201,9 @@ class DomainAdversarialTrainer:
 
         # forward
         target_features = self.target_encoder(target_data)
-        target_domain_predicts = self.domain_discriminator(target_features)
+        target_preds = self.classifier(target_features)
+        target_multilinear_map_features = torch.einsum('i,j->ij', target_features, target_preds)
+        target_domain_predicts = self.domain_discriminator(target_multilinear_map_features)
         target_adversarial_loss = - self.adversarial_criterion(target_domain_predicts, torch.zeros(16).long().to(self.device))
 
         # backward
@@ -185,11 +220,15 @@ class DomainAdversarialTrainer:
         # forward
         z = torch.randn(16, 100).to(self.device)
         source_features = self.source_generator(z)
+        source_preds = self.source_predicts(source_features)
+        source_multilinear_map_features = torch.einsum('i,j->ij', source_features, source_preds)
         # source_features = self.source_encoder(source_data)
-        source_domain_preds = self.domain_discriminator(source_features.detach())
+        source_domain_preds = self.domain_discriminator(source_multilinear_map_features.detach())
 
         target_features = self.target_encoder(target_data)
-        target_domain_preds = self.domain_discriminator(target_features.detach())
+        target_preds = self.classifier(target_features)
+        target_multilinear_map_features = torch.einsum('i,j->ij', target_features, target_preds)
+        target_domain_preds = self.domain_discriminator(target_multilinear_map_features.detach())
 
         domain_labels = torch.cat((torch.ones(16).long().to(self.device), torch.zeros(16).long().to(self.device)))
 
