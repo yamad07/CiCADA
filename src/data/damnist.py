@@ -1,7 +1,7 @@
-from torchvision.datasets.mnist import MNIST
 import random
 from PIL import Image
-import torch
+
+from torchvision.datasets.mnist import MNIST
 
 class DAMNIST(MNIST):
     urls = [
@@ -15,7 +15,8 @@ class DAMNIST(MNIST):
     training_file = 'training.pt'
     test_file = 'test.pt'
 
-    def __init__(self, root, train=True, source_transform=None, target_transform=None, download=False):
+    def __init__(self, root, train=True, source_transform=None,
+            target_transform=None, download=False):
         super(DAMNIST, self).__init__(root=root, train=train, download=download)
         self.source_transform = source_transform
         self.target_transform = target_transform
@@ -50,10 +51,10 @@ class DAMNIST(MNIST):
                 target_img_for_adv = self.target_transform(target_img_for_adv)
 
             return source_img, source_label, target_img, target_img_for_adv
-        else:
-            target_img = self.target_data[idx]
-            target_img = Image.fromarray(target_img.numpy(), mode='L')
-            target_label = self.target_labels[idx]
-            if self.target_transform is not None:
-                target_img = self.target_transform(target_img)
-            return target_img, target_label
+
+        target_img = self.target_data[idx]
+        target_img = Image.fromarray(target_img.numpy(), mode='L')
+        target_label = self.target_labels[idx]
+        if self.target_transform is not None:
+            target_img = self.target_transform(target_img)
+        return target_img, target_label

@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from ..layers.gan import fc_layer
+from ...layers.gan import fc_layer
 
 class Classifier(nn.Module):
     def __init__(self):

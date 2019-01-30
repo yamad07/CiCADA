@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from ..layers.cnn import conv_layer
+from ...layers.cnn import conv_layer
 
 class TargetEncoder(nn.Module):
     def __init__(self):

@@ -2,7 +2,7 @@ import torch.optim as optim
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ..loss.inverse_focal_loss import InverseFocalLoss
+from ...loss.inverse_focal_loss import InverseFocalLoss
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
@@ -130,7 +130,7 @@ class ConditionalSupervisedTrainer(object):
 
     def _validate_accuracy(self, e):
         accuracy = 0
-        for i, (source_data, source_labels, _, _) in enumerate(self.validate_data_loader):
+        for i, (source_data, source_labels) in enumerate(self.validate_data_loader):
             source_data = source_data.to(self.device)
             source_labels = source_labels.to(self.device)
             batch_size = source_data.size()[0]
@@ -146,7 +146,7 @@ class ConditionalSupervisedTrainer(object):
 
 
     def _validate(self, e):
-        for i, (source_data, source_labels, _, _) in enumerate(self.validate_data_loader):
+        for i, (source_data, source_labels) in enumerate(self.validate_data_loader):
             batch_size = source_data.size()[0]
             self.generator.eval()
             self.source_encoder.eval()

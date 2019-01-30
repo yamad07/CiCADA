@@ -61,7 +61,7 @@ maximum_classifier_discrepancy_trainer = MaximumClassifierDiscrepancyTrainer(  #
         validate_data_loader=source_validate_data_loader,
         experiment=experiment
         )
-maximum_classifier_discrepancy_trainer.train(1)
+maximum_classifier_discrepancy_trainer.train(0)
 
 source_domain_modeling_trainer = SourceDomainModelingTrainer(  #_ <class 'src.trainers.sdm.SourceDomainModelingTrainer'>,
         source_encoder=source_encoder,

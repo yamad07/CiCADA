@@ -1,14 +1,14 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from ..layers.gan import fc_layer
+from ...layers.gan import fc_layer
 
 class SDMG(nn.Module):
 
     def __init__(self):
         super(SDMG, self).__init__()
-        self.fc1 = fc_layer(100 + 10, 1024)
-        self.fc2 = fc_layer(1024, 512)
-        self.fc4 = nn.Linear(512, 256)
+        self.fc1 = fc_layer(100 + 43, 1024)
+        self.fc2 = fc_layer(1024, 1024)
+        self.fc4 = nn.Linear(1024, 512)
         self.dropout = nn.Dropout(p=0.5)
 
     def forward(self, x):
