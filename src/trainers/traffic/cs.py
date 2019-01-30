@@ -25,8 +25,8 @@ class ConditionalSupervisedTrainer(object):
         self.experiment = experiment
         self.n_classes = n_classes
 
-        self.source_encoder_optim = optim.Adam(self.source_encoder.parameters(), lr=1e-3)
-        self.classifier_optim = optim.Adam(self.classifier.parameters(), lr=1e-3)
+        self.source_encoder_optim = optim.Adam(self.source_encoder.parameters(), lr=1e-4)
+        self.classifier_optim = optim.Adam(self.classifier.parameters(), lr=1e-4)
         self.discriminator_optim = optim.Adam(self.discriminator.parameters(), lr=1e-4)
         self.generator_optim = optim.Adam(self.generator.parameters(), lr=1e-4)
 
@@ -89,7 +89,7 @@ class ConditionalSupervisedTrainer(object):
         true_source_features = self.source_encoder(source_data)
         true_mul_features = torch.mul(
                 torch.mm(self.classifier(true_source_features), self.randomized_g),
-                torch.mm(true_source_features, self.randomized_f)) / np.sqrt(2000)
+                torch.mm(true_source_features, self.randomized_f)) / np.sqrt(4000)
         true_mul_preds = self.discriminator(true_mul_features.detach())
 
         z = torch.randn(batch_size, 100).to(self.device).detach()
@@ -99,7 +99,7 @@ class ConditionalSupervisedTrainer(object):
         fake_features = self.generator(torch.cat((z, one_hot), dim=1))
         fake_mul_features = torch.mul(
                 torch.mm(self.classifier(fake_features), self.randomized_g),
-                torch.mm(fake_features, self.randomized_f)) / np.sqrt(2000)
+                torch.mm(fake_features, self.randomized_f)) / np.sqrt(4000)
         fake_mul_preds = self.discriminator(fake_mul_features.detach())
 
         mul_preds = torch.cat((true_mul_preds, fake_mul_preds), dim=0)
