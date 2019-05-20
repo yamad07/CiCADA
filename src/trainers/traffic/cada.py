@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 class ConditionalAdversarialTrainer:
 
     def __init__(self, experiment, source_generator, classifier, target_encoder, domain_discriminator,
-            randomized_g, randomized_f, data_loader, validate_data_loader, n_classes):
+            randomized_g, randomized_f, data_loader, validate_data_loader, n_classes, arg):
         self.experiment = experiment
         self.classifier = classifier
         self.source_generator = source_generator
@@ -22,18 +22,18 @@ class ConditionalAdversarialTrainer:
         self.data_loader = data_loader
         self.validate_data_loader = validate_data_loader
         self.n_classes = n_classes
+        self.arg = arg
 
-        self.discriminator_optim = optim.Adam(self.domain_discriminator.parameters(), lr=1e-4)
-        self.target_encoder_optim = optim.Adam(self.target_encoder.parameters(), lr=1e-4)
-        self.classifier_optim = optim.Adam(self.classifier.parameters(), lr=1e-4)
-        self.source_generator_optim = optim.Adam(self.source_generator.parameters(), lr=1e-4)
+        self.discriminator_optim = optim.Adam(self.domain_discriminator.parameters(), lr=self.arg.lr)
+        self.target_encoder_optim = optim.Adam(self.target_encoder.parameters(), lr=self.arg.lr)
+        self.classifier_optim = optim.Adam(self.classifier.parameters(), lr=self.arg.lr)
+        self.source_generator_optim = optim.Adam(self.source_generator.parameters(), lr=self.arg.lr)
         self.domain_discriminator_criterion = InverseFocalLoss()
         self.target_encoder_criterion = InverseFocalLoss()
         self.classifier_criterion = nn.NLLLoss()
         self.randomized_g = randomized_g
         self.randomized_f = randomized_f
         self.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-        self.n_features = 4000
         self.tsne = TSNE(n_components=2)
 
     def train(self, epoch):
@@ -90,7 +90,7 @@ class ConditionalAdversarialTrainer:
     def _randomized_multilinear_map(self, features):
         mul_features = torch.mul(
                 torch.mm(self.classifier(features), self.randomized_g),
-                torch.mm(features, self.randomized_f)) / np.sqrt(self.n_features)
+                torch.mm(features, self.randomized_f)) / np.sqrt(self.arg.f_dim)
         return mul_features
 
     def _training_classifier(self, batch_size):
@@ -103,7 +103,7 @@ class ConditionalAdversarialTrainer:
         random_labels = torch.randint(0, self.n_classes - 1, (batch_size, )).to(self.device).long()
         one_hot = one_hot.scatter_(1, torch.unsqueeze(random_labels, 1).to(self.device), 1).detach()
 
-        z = torch.randn(batch_size, 100).to(self.device).detach()
+        z = torch.randn(batch_size, self.arg.z_dim).to(self.device).detach()
         source_features = self.source_generator(torch.cat((z, one_hot), dim=1))
         source_preds = self.classifier(source_features)
 
@@ -123,7 +123,7 @@ class ConditionalAdversarialTrainer:
         random_labels = torch.randint(0, self.n_classes - 1, (batch_size, )).to(self.device).long()
         one_hot = one_hot.scatter_(1, torch.unsqueeze(random_labels, 1).to(self.device), 1).detach()
 
-        z = torch.randn(batch_size, 100).to(self.device).detach()
+        z = torch.randn(batch_size, self.arg.z_dim).to(self.device).detach()
         source_features = self.source_generator(torch.cat((z, one_hot), dim=1))
         source_mul_features = self._randomized_multilinear_map(source_features)
 
@@ -152,7 +152,7 @@ class ConditionalAdversarialTrainer:
         random_labels = torch.randint(0, self.n_classes - 1, (batch_size, )).to(self.device).long()
         one_hot = one_hot.scatter_(1, torch.unsqueeze(random_labels, 1).to(self.device), 1).detach()
 
-        z = torch.randn(batch_size, 100).to(self.device).detach()
+        z = torch.randn(batch_size, self.arg.z_dim).to(self.device).detach()
         source_features = self.source_generator(torch.cat((z, one_hot), dim=1))
         source_mul_features = self._randomized_multilinear_map(source_features)
         source_domain_preds = self.domain_discriminator(source_mul_features)
@@ -179,7 +179,7 @@ class ConditionalAdversarialTrainer:
             random_labels = torch.randint(0, self.n_classes - 1, (batch_size, )).to(self.device).long()
             one_hot = one_hot.scatter_(1, torch.unsqueeze(random_labels, 1).to(self.device), 1).detach()
 
-            z = torch.randn(batch_size, 100).to(self.device).detach()
+            z = torch.randn(batch_size, self.arg.z_dim).to(self.device).detach()
             source_features = self.source_generator(torch.cat((z, one_hot), dim=1))
             target_features = self.target_encoder(target_data)
             features = torch.cat((source_features, target_features), dim=0)

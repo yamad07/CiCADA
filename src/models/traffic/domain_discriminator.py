@@ -3,9 +3,9 @@ import torch.nn.functional as F
 from ...layers.gan import fc_layer
 
 class DomainDiscriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, f_dim):
         super(DomainDiscriminator, self).__init__()
-        self.fc1 = fc_layer(4000, 1024)
+        self.fc1 = fc_layer(f_dim, 1024)
         self.fc2 = fc_layer(1024, 512)
         self.fc3 = nn.Linear(512, 2)
 

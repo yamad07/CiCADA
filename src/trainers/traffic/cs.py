@@ -10,8 +10,8 @@ import numpy as np
 
 class ConditionalSupervisedTrainer(object):
 
-    def __init__(self, source_encoder, generator, discriminator, randomized_f, randomized_g, classifier, data_loader,
-            validate_data_loader, experiment, n_classes):
+    def __init__(self, source_encoder, generator, discriminator, randomized_f,
+            randomized_g, classifier, data_loader, validate_data_loader, experiment, n_classes, arg):
 
         self.source_encoder = source_encoder
         self.generator = generator
@@ -24,11 +24,12 @@ class ConditionalSupervisedTrainer(object):
         self.validate_data_loader = validate_data_loader
         self.experiment = experiment
         self.n_classes = n_classes
+        self.arg = arg
 
-        self.source_encoder_optim = optim.Adam(self.source_encoder.parameters(), lr=1e-4)
-        self.classifier_optim = optim.Adam(self.classifier.parameters(), lr=1e-4)
-        self.discriminator_optim = optim.Adam(self.discriminator.parameters(), lr=1e-4)
-        self.generator_optim = optim.Adam(self.generator.parameters(), lr=1e-4)
+        self.source_encoder_optim = optim.Adam(self.source_encoder.parameters(), lr=self.arg.lr)
+        self.classifier_optim = optim.Adam(self.classifier.parameters(), lr=self.arg.lr)
+        self.discriminator_optim = optim.Adam(self.discriminator.parameters(), lr=self.arg.lr)
+        self.generator_optim = optim.Adam(self.generator.parameters(), lr=self.arg.lr)
 
         self.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
@@ -89,17 +90,17 @@ class ConditionalSupervisedTrainer(object):
         true_source_features = self.source_encoder(source_data)
         true_mul_features = torch.mul(
                 torch.mm(self.classifier(true_source_features), self.randomized_g),
-                torch.mm(true_source_features, self.randomized_f)) / np.sqrt(4000)
+                torch.mm(true_source_features, self.randomized_f)) / np.sqrt(self.arg.f_dim)
         true_mul_preds = self.discriminator(true_mul_features.detach())
 
-        z = torch.randn(batch_size, 100).to(self.device).detach()
+        z = torch.randn(batch_size, self.arg.z_dim).to(self.device).detach()
         one_hot = torch.zeros((batch_size, self.n_classes)).to(self.device)
         one_hot = one_hot.scatter_(1, torch.unsqueeze(source_labels, 1).to(self.device), 1).detach()
 
         fake_features = self.generator(torch.cat((z, one_hot), dim=1))
         fake_mul_features = torch.mul(
                 torch.mm(self.classifier(fake_features), self.randomized_g),
-                torch.mm(fake_features, self.randomized_f)) / np.sqrt(4000)
+                torch.mm(fake_features, self.randomized_f)) / np.sqrt(self.arg.f_dim)
         fake_mul_preds = self.discriminator(fake_mul_features.detach())
 
         mul_preds = torch.cat((true_mul_preds, fake_mul_preds), dim=0)
@@ -113,11 +114,11 @@ class ConditionalSupervisedTrainer(object):
         self.generator_optim.zero_grad()
         self.discriminator_optim.zero_grad()
 
-        z = torch.randn(batch_size, 100).to(self.device).detach()
+        z = torch.randn(batch_size, self.arg.z_dim).to(self.device).detach()
         fake_features = self.generator(torch.cat((z, one_hot), dim=1))
         fake_mul_features = torch.mul(
                 torch.mm(self.classifier(fake_features), self.randomized_g),
-                torch.mm(fake_features, self.randomized_f)) / np.sqrt(4000)
+                torch.mm(fake_features, self.randomized_f)) / np.sqrt(self.arg.f_dim)
         fake_mul_preds = self.discriminator(fake_mul_features)
         generator_loss = self.generator_criterion(fake_mul_preds, torch.zeros(batch_size).long().to(self.device))
 
@@ -142,7 +143,7 @@ class ConditionalSupervisedTrainer(object):
             one_hot = torch.zeros((batch_size, self.n_classes)).to(self.device)
             one_hot = one_hot.scatter_(1, torch.unsqueeze(source_labels, 1).to(self.device), 1).detach()
 
-            z = torch.randn(batch_size, 100).to(self.device).detach()
+            z = torch.randn(batch_size, self.arg.z_dim).to(self.device).detach()
             fake_features = self.generator(torch.cat((z, one_hot), dim=1))
             fake_preds = self.classifier(fake_features)
             accuracy.append(self._calc_accuracy(fake_preds, source_labels))
@@ -160,7 +161,7 @@ class ConditionalSupervisedTrainer(object):
             source_data = source_data.to(self.device)
             source_one_hot = torch.zeros((batch_size, self.n_classes)).to(self.device).detach()
             source_one_hot = source_one_hot.scatter_(1, torch.unsqueeze(source_labels, 1).to(self.device), 1)
-            z = torch.randn(batch_size, 100).to(self.device).detach()
+            z = torch.randn(batch_size, self.arg.z_dim).to(self.device).detach()
             source_features = self.source_encoder(source_data)
             source_fake_features = self.generator(torch.cat((z, source_one_hot), dim=1))
             source_features_2dim = self.tsne.fit_transform(torch.cat((source_features, source_fake_features), dim=0).detach().cpu().numpy())
