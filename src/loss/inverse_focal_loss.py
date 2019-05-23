@@ -15,4 +15,5 @@ class InverseFocalLoss(nn.Module):
         one_hot = torch.zeros((targets.size()[0], 2)).to(device)
         one_hot = one_hot.scatter_(1, torch.unsqueeze(targets, 1), 1)
         liklyhood = torch.mul(input, one_hot).sum(dim=1)
-        return - torch.mean(torch.mul(torch.exp(liklyhood), torch.log(liklyhood)))
+        return - torch.mean(torch.mul(torch.exp(liklyhood),
+                                      torch.log(liklyhood)))

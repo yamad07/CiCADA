@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ...layers.gan import fc_layer
 
+
 class DomainDiscriminator(nn.Module):
     def __init__(self):
         super(DomainDiscriminator, self).__init__()

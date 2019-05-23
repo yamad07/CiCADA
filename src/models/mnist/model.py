@@ -23,7 +23,6 @@ class MNISTModel(Model, nn.Module):
         z = torch.randn(batch_size, 100).to(self.device)
         return self.source_generator(torch.cat((z, one_hot), dim=1).detach())
 
-
     def calculate_source_discriminate_loss(
             self,
             images: torch.FloatTensor,
@@ -36,7 +35,9 @@ class MNISTModel(Model, nn.Module):
         truth_preds = self.domain_discriminator(extract_feautres)
         preds = torch.cat((fake_preds, truth_preds), dim=0)
 
-        labels = torch.cat((torch.ones(batch_size).long(), torch.zeros(batch_size).long()))
+        labels = torch.cat(
+            (torch.ones(batch_size).long(),
+             torch.zeros(batch_size).long()))
         return F.nll_loss(preds, labels)
 
     def calculate_domain_discriminate_loss(
@@ -51,10 +52,10 @@ class MNISTModel(Model, nn.Module):
         target_domain_preds = self.domain_discriminator(target_feautres)
         preds = torch.cat((source_domain_preds, target_domain_preds), dim=0)
 
-        labels = torch.cat((torch.ones(batch_size).long(), torch.zeros(batch_size).long()))
+        labels = torch.cat(
+            (torch.ones(batch_size).long(),
+             torch.zeros(batch_size).long()))
         return F.nll_loss(preds, labels)
-
 
     def calculate_classifier_loss(self, images: torch.FloatTensor, labels: torch.LongTensor) -> loss: torch.FloatTensor:
         pass
-

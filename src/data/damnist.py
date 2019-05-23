@@ -3,6 +3,7 @@ from PIL import Image
 
 from torchvision.datasets.mnist import MNIST
 
+
 class DAMNIST(MNIST):
     urls = [
         'http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz',
@@ -16,8 +17,13 @@ class DAMNIST(MNIST):
     test_file = 'test.pt'
 
     def __init__(self, root, train=True, source_transform=None,
-            target_transform=None, download=False):
-        super(DAMNIST, self).__init__(root=root, train=train, download=download)
+                 target_transform=None, download=False):
+        super(
+            DAMNIST,
+            self).__init__(
+            root=root,
+            train=train,
+            download=download)
         self.source_transform = source_transform
         self.target_transform = target_transform
 
@@ -41,7 +47,8 @@ class DAMNIST(MNIST):
 
             source_img = Image.fromarray(source_img.numpy(), mode='L')
             target_img = Image.fromarray(target_img.numpy(), mode='L')
-            target_img_for_adv = Image.fromarray(target_img_for_adv.numpy(), mode='L')
+            target_img_for_adv = Image.fromarray(
+                target_img_for_adv.numpy(), mode='L')
 
             if self.source_transform is not None:
                 source_img = self.source_transform(source_img)

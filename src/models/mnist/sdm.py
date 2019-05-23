@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ...layers.gan import fc_layer
 
+
 class SDMG(nn.Module):
 
     def __init__(self):
@@ -16,6 +17,7 @@ class SDMG(nn.Module):
         h = F.leaky_relu(self.fc2(h))
         h = F.tanh(self.dropout(self.fc4(h)))
         return h
+
 
 class SDMD(nn.Module):
 

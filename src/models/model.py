@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import torch
 
+
 class Model(ABCMeta):
     @abstractmethod
     def forward(self, images: torch.FloatTensor) -> preds: torch.FloatTensor:

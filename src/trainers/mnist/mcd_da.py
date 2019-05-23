@@ -11,7 +11,9 @@ class MaximumClassifierDiscrepancyDA:
                 discrepancy = self._minimize_discrepancy(target_data)
 
             val_target_accuracy = self._validate(e)
-            print('Epoch: {} L(F(C(x)): {} d(p1, p2): {}'.format(e, val_target_accuracy, discrepancy))
+            print(
+                'Epoch: {} L(F(C(x)): {} d(p1, p2): {}'.format(
+                    e, val_target_accuracy, discrepancy))
 
     def _minimize_discrepancy(self, target_data):
         self.target_encoder_optim.zero_grad()
@@ -26,7 +28,8 @@ class MaximumClassifierDiscrepancyDA:
 
     def _validate(self, e):
         accuracy = 0
-        for i, (target_data, target_labels) in enumerate(self.validate_data_loader):
+        for i, (target_data, target_labels) in enumerate(
+                self.validate_data_loader):
             target_data = target_data.to(self.device)
             target_labels = target_labels.to(self.device)
 
@@ -36,7 +39,8 @@ class MaximumClassifierDiscrepancyDA:
             target_features = self.target_encoder(target_data)
             target_preds = self.classifier_a(target_features)
             _, target_preds = torch.max(target_preds, 1)
-            accuracy += 100 * (target_preds == target_labels).sum().item() / target_preds.size()[0]
+            accuracy += 100 * \
+                (target_preds == target_labels).sum().item() / target_preds.size()[0]
 
         accuracy /= len(self.validate_data_loader)
         return accuracy

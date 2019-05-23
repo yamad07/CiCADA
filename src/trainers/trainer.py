@@ -12,11 +12,11 @@ class Trainer(ABCMeta):
             n_epoch: int,
             lr: float,
             device: torch.device,
-            ):
+    ):
         pass
 
     def log_train_process(
             self,
             experiment: Experiment,
-            ):
+    ):
         pass

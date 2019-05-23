@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ...layers.cnn import conv_layer
 
+
 class SourceEncoder(nn.Module):
     def __init__(self):
         super(SourceEncoder, self).__init__()

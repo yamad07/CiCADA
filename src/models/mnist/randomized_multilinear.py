@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+
 class RandomizedMultilinear(nn.Module):
 
     def __init__(self, n_input):
