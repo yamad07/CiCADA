@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 
 class MNISTTrainer(Trainer):
     def __init__(self, model):
+        pass
 
     def train(
             self,
@@ -34,10 +35,11 @@ class MNISTTrainer(Trainer):
             target_valid_accuracy = self.validate(e)
             self.experiment.log_current_epoch(e)
             self.experiment.log_metric(
-                'valid_target_accuracy',
+                'validate_target_accuracy',
                 target_valid_accuracy)
-            print("Epoch: {0} D(x): {1} D(G(x)): {2} L(D(x)): {3} target_accuracy: {4}".format(
-                e, discriminator_loss, target_encoder_loss, classifier_loss, target_valid_accuracy))
+            print("Epoch: {0} D(x):{1} D(G(x)):{2} L(D(x)):{3} A:{4}".format(
+                e, discriminator_loss, target_encoder_loss,
+                classifier_loss, target_valid_accuracy))
 
     def log_train_process(
             self,
@@ -45,5 +47,6 @@ class MNISTTrainer(Trainer):
     ):
         experiment.log_current_epoch(e)
         experiment.log_metric('valid_target_accuracy', target_valid_accuracy)
-        print("Epoch: {0} D(x): {1} D(G(x)): {2} L(D(x)): {3} target_accuracy: {4}".format(
-            e, discriminator_loss, target_encoder_loss, classifier_loss, target_valid_accuracy))
+        print("Epoch: {0} D(x):{1} D(G(x)):{2} L(D(x)):{3} A:{4}".format(
+            e, discriminator_loss, target_encoder_loss,
+            classifier_loss, target_valid_accuracy))
