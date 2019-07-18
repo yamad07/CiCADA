@@ -1,6 +1,9 @@
+from comet_ml import Experiment
+from cicada.models.model import Model
 from abc import ABCMeta, abstractmethod
-from comet import Experiment
 import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
 
 
 class Trainer(ABCMeta):
@@ -12,9 +15,12 @@ class Trainer(ABCMeta):
             n_epoch: int,
             lr: float,
             device: torch.device,
-    ):
+            images_loader: DataLoader,
+            Optimizer: torch.optim.Optimizer,
+            ) -> nn.Module:
         pass
 
+    @abstractmethod
     def log_train_process(
             self,
             experiment: Experiment,

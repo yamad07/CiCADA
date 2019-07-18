@@ -12,7 +12,7 @@ from cicada.models.mnist.randomized_multilinear import RandomizedMultilinear
 
 
 class MNISTModel(nn.Module, metaclass=Model):
-    def __init__(self, cuda, n_randomized_ml):
+    def __init__(self, device=None, n_randomized_ml=None):
         super(MNISTModel, self).__init__()
         self.source_encoder = SourceEncoder()
         self.target_encoder = TargetEncoder()
@@ -20,11 +20,13 @@ class MNISTModel(nn.Module, metaclass=Model):
         self.domain_discriminator = DomainDiscriminator()
         self.source_generator = SDMG()
         self.source_discriminator = SDMD()
+        if n_randomized_ml is None:
+            raise ValueError()
+
         self.randomized_g = torch.FloatTensor(10, n_randomized_ml)
         self.randomized_f = torch.FloatTensor(256, n_randomized_ml)
         self.n_randomized_ml = n_randomized_ml
-        self.device = torch.device("cuda:{}".format(
-            cuda) if torch.cuda.is_available() else "cpu")
+        self.device = device
 
     def forward(self, images: torch.FloatTensor) -> torch.FloatTensor:
 
@@ -38,7 +40,7 @@ class MNISTModel(nn.Module, metaclass=Model):
 
         batch_size = labels.size(0)
         one_hot = torch.zeros(batch_size, 10)
-        one_hot = one_hot.scatter_(1, torch.unsqueeze(labels, 1), 1)
+        one_hot = one_hot.scatter_(1, torch.unsqueeze(labels, 1), 1).float()
         z = torch.randn(batch_size, 100).to(self.device)
         return self.source_generator(torch.cat((z, one_hot), dim=1).detach())
 
@@ -64,16 +66,17 @@ class MNISTModel(nn.Module, metaclass=Model):
 
     def calculate_domain_discriminate_loss(
             self,
-            source_images: torch.FloatTensor,
+            source_labels: torch.LongTensor,
             target_images: torch.FloatTensor) -> torch.FloatTensor:
 
-        source_features = self.source_encoder(source_images)
+        batch_size = source_labels.size(0)
+        source_features = self.generate_conditional_features(source_labels)
         target_features = self.target_encoder(target_images)
 
         source_domain_preds = self.domain_discriminator(
-            self._randomized_multilinear_map(source_feautres))
+            self._randomized_multilinear_map(source_features))
         target_domain_preds = self.domain_discriminator(
-            self._randomized_multilinear_map(target_feautres))
+            self._randomized_multilinear_map(target_features))
         preds = torch.cat((source_domain_preds, target_domain_preds), dim=0)
 
         labels = torch.cat(

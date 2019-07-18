@@ -36,7 +36,8 @@ class Model(ABCMeta):
     @abstractmethod
     def calculate_domain_discriminate_loss(
             self,
-            images: torch.FloatTensor) -> torch.FloatTensor:
+            source_labels: torch.LongTensor,
+            target_images: torch.FloatTensor) -> torch.FloatTensor:
 
         pass
 

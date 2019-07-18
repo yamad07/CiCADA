@@ -34,6 +34,28 @@ class TestModel(unittest.TestCase):
         actual = model.calculate_source_discriminate_loss(images, labels)
         self.assertEqual(torch.Tensor, type(actual))
 
+    def test_calculate_domain_discriminator_loss(self):
+        batch_size = 10
+        z_dim = 256
+        mnist_size = 28
+        model = MNISTModel(cuda=1, n_randomized_ml=4000)
+        source_labels = torch.ones(batch_size).long()
+        target_images = torch.FloatTensor(
+                batch_size, 1, mnist_size, mnist_size)
+        actual = model.calculate_domain_discriminate_loss(
+                source_labels, target_images)
+        self.assertEqual(torch.Tensor, type(actual))
+
+    def test_calculate_classifier_loss(self):
+        batch_size = 10
+        z_dim = 256
+        mnist_size = 28
+        model = MNISTModel(cuda=1, n_randomized_ml=4000)
+        images = torch.FloatTensor(batch_size, 1, mnist_size, mnist_size)
+        labels = torch.ones(batch_size).long()
+        actual = model.calculate_classifier_loss(images, labels)
+        self.assertEqual(torch.Tensor, type(actual))
+
 
 if __name__ == "__main__":
     unittest.main()
